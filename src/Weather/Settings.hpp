@@ -22,6 +22,16 @@ struct WeatherSettings {
    * Enable Thermal Information Map?
    */
   bool enable_tim;
+
+  /**
+   * Search radius for Thermal Information Map in kilometers
+   */
+  unsigned tim_radius;
+
+  /**
+   * Maximum age of thermals in hours
+   */
+  unsigned tim_max_age;
 #endif
 
   void SetDefaults() {
@@ -31,6 +41,8 @@ struct WeatherSettings {
 
 #ifdef HAVE_HTTP
     enable_tim = false;
+    tim_radius = 20;
+    tim_max_age = 1;
 #endif
   }
 };

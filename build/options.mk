@@ -55,11 +55,15 @@ ifeq ($(GREYSCALE),y)
   TARGET_CPPFLAGS += -DGREYSCALE
 endif
 
-# When enabled, the Androidpackage org.xcsoar.testing is created, with
-# a red Activity icon, to allow simultaneous installation of "stable"
-# and "testing".
-# In the stable branch, this should default to "n".
-TESTING = n
+# When enabled, the Android package org.xcsoar.testing is created, with
+# a red Activity icon, to allow simultaneous installation of the Play
+# Store app and a self-built variant. Override with TESTING=n for a
+# production-identical Android package or for non-Android builds.
+ifeq ($(TARGET_IS_ANDROID),y)
+  TESTING ?= y
+else
+  TESTING ?= n
+endif
 
 # Default Android package flavor:
 # - FOSS is the default for regular Android builds

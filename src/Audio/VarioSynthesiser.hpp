@@ -6,6 +6,8 @@
 #include "ToneSynthesiser.hpp"
 #include "thread/Mutex.hxx"
 
+#include <algorithm>
+
 /**
  * This class generates vario sound.
  */
@@ -34,7 +36,16 @@ class VarioSynthesiser final : public ToneSynthesiser {
    */
   size_t audible_remaining, silence_remaining;
 
+  /**
+   * The number of audible samples that have already been generated in
+   * the current phase.  Used for fade-in shaping.
+   */
+  size_t audible_phase_elapsed;
+
   bool dead_band_enabled;
+  bool dead_band_active;
+  bool continuous_tone;
+  bool phase_attack_enabled;
 
   /**
    * The tone frequency for #min_vario.
@@ -67,15 +78,29 @@ class VarioSynthesiser final : public ToneSynthesiser {
    */
   int min_dead, max_dead;
 
+  /**
+   * The number of samples used for fade-in/fade-out shaping.
+   */
+  size_t fade_samples;
+
+  /**
+   * Deadband hysteresis [cm/s].
+   */
+  int dead_band_hysteresis;
+
 public:
   explicit VarioSynthesiser(unsigned sample_rate)
     :ToneSynthesiser(sample_rate),
      audible_count(0), silence_count(1),
      audible_remaining(0), silence_remaining(0),
-     dead_band_enabled(false),
+     audible_phase_elapsed(0),
+     dead_band_enabled(false), dead_band_active(false),
+     continuous_tone(false), phase_attack_enabled(true),
      min_frequency(200), zero_frequency(500), max_frequency(1500),
      min_period_ms(150), max_period_ms(600),
-     min_dead(-30), max_dead(10) {}
+     min_dead(-30), max_dead(10),
+     fade_samples(std::max<size_t>(sample_rate / 125u, 1u)),
+     dead_band_hysteresis(5) {}
 
   /**
    * Update the vario value.  This calculates a new tone frequency and
@@ -95,6 +120,8 @@ public:
    */
   void SetDeadBand(bool enabled) {
     dead_band_enabled = enabled;
+    if (!enabled)
+      dead_band_active = false;
   }
 
   /**
@@ -131,6 +158,13 @@ private:
    */
   void UnsafeSetSilence();
 
+  bool ShouldMuteForDeadBand(int ivario);
+
+  void ApplyAttackEnvelope(int16_t *buffer, size_t n) noexcept;
+
+  void ApplyEnvelope(int16_t *buffer, size_t n,
+                     size_t remaining_before) noexcept;
+
   /**
    * Convert a vario value to a tone frequency.
    *
@@ -139,7 +173,4 @@ private:
   [[gnu::const]]
   unsigned VarioToFrequency(int ivario);
 
-  bool InDeadBand(int ivario) {
-    return ivario >= min_dead && ivario <= max_dead;
-  }
 };

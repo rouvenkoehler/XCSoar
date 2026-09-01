@@ -11,6 +11,7 @@
 #include "SLES/Init.hpp"
 #endif
 
+#include <atomic>
 #include <cassert>
 
 static constexpr unsigned sample_rate = 44100;
@@ -21,7 +22,7 @@ static bool have_sles;
 
 static PCMPlayer *player;
 static VarioSynthesiser *synthesiser;
-static double kalman_variance_override = 0.0;
+static std::atomic<double> kalman_variance_override{0.0};
 
 bool
 AudioVarioGlue::HaveAudioVario()

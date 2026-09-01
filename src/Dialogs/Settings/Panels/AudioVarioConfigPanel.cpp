@@ -24,6 +24,7 @@ enum ControlIndex {
   SPACER2,
   DEAD_BAND_MIN,
   DEAD_BAND_MAX,
+  KALMAN_VARIANCE,
 };
 
 
@@ -103,6 +104,16 @@ AudioVarioConfigPanel::Prepare(ContainerWindow &parent,
   SetExpertRow(DEAD_BAND_MAX);
   DataFieldFloat &db_max = (DataFieldFloat &)GetDataField(DEAD_BAND_MAX);
   db_max.SetFormat(GetUserVerticalSpeedFormat(false, true));
+
+  AddFloat(_("Kalman filter variance"),
+           _("Override for the barometric sensor Kalman filter noise variance (hPa\xc2\xb2). "
+             "0 = use sensor default. "
+             "Smaller values make the vario more responsive; "
+             "larger values produce heavier smoothing. "
+             "Try 0.0001 for modern sensors, 0.05 for old sensors."),
+           "%.5f", "%.5f",
+           0.0, 0.1, 0.0001, false, settings.kalman_filter_variance);
+  SetExpertRow(KALMAN_VARIANCE);
 }
 
 bool
@@ -136,6 +147,9 @@ AudioVarioConfigPanel::Save(bool &changed) noexcept
 
   changed |= SaveValue(DEAD_BAND_MAX, UnitGroup::VERTICAL_SPEED,
                        ProfileKeys::VarioDeadBandMax, settings.max_dead);
+
+  changed |= SaveValue(KALMAN_VARIANCE, ProfileKeys::VarioKalmanVariance,
+                       settings.kalman_filter_variance);
 
   return true;
 }

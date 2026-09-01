@@ -19,4 +19,6 @@ VarioSoundSettings::SetDefaults()
 
   min_dead = -0.3;
   max_dead = 0.1;
+
+  kalman_filter_variance = 0;
 }

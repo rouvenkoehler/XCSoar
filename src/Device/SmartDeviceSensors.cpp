@@ -7,6 +7,7 @@
 #include "DataEditor.hpp"
 #include "NMEA/Info.hpp"
 #include "Geo/Geoid.hpp"
+#include "Audio/VarioGlue.hpp"
 
 
 void
@@ -98,6 +99,15 @@ void
 DeviceDescriptor::OnBarometricPressureSensor(float pressure,
                                              float sensor_noise_variance) noexcept
 {
+  /* Allow a user-configured Kalman variance to override the sensor default. */
+#ifdef HAVE_PCM_PLAYER
+  {
+    const double override_var = AudioVarioGlue::GetKalmanVarianceOverride();
+    if (override_var > 0.0)
+      sensor_noise_variance = static_cast<float>(override_var);
+  }
+#endif
+
   /* Kalman filter updates are also protected by the blackboard
      mutex. These should not take long; we won't hog the mutex
      unduly. */

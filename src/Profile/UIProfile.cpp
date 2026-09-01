@@ -85,6 +85,8 @@ Profile::Load(const ProfileMap &map, VarioSoundSettings &settings)
 
   map.Get(ProfileKeys::VarioDeadBandMin, settings.min_dead);
   map.Get(ProfileKeys::VarioDeadBandMax, settings.max_dead);
+
+  map.Get(ProfileKeys::VarioKalmanVariance, settings.kalman_filter_variance);
 }
 
 void

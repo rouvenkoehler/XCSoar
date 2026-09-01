@@ -6,13 +6,14 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cstdint>
 
 /**
  * The minimum and maximum vario range for the constants below [cm/s].
  */
 static constexpr int min_vario = -500, max_vario = 500;
 
-static constexpr unsigned envelope_scale = 256;
+static constexpr unsigned envelope_scale = 65536;
 
 unsigned
 VarioSynthesiser::VarioToFrequency(int ivario)
@@ -31,7 +32,7 @@ VarioSynthesiser::ShouldMuteForDeadBand(int ivario)
 
   if (dead_band_active) {
     if (ivario >= min_dead - hysteresis && ivario <= max_dead + hysteresis)
-     return true;
+      return true;
 
     dead_band_active = false;
     return false;
@@ -54,10 +55,10 @@ VarioSynthesiser::ApplyAttackEnvelope(int16_t *buffer, size_t n) noexcept
   for (size_t i = 0; i < n; ++i) {
     const size_t position = audible_phase_elapsed + i;
     if (position >= fade_samples)
-     break;
+      break;
 
-    const unsigned scale = (unsigned)((position + 1) * envelope_scale
-                                     / fade_samples);
+    const unsigned scale =
+      (unsigned)((uint64_t)(position + 1) * envelope_scale / fade_samples);
     buffer[i] = (int16_t)((int32_t)buffer[i] * (int32_t)scale
                          / (int32_t)envelope_scale);
   }
@@ -71,20 +72,24 @@ void
 VarioSynthesiser::ApplyEnvelope(int16_t *buffer, size_t n,
                                size_t remaining_before) noexcept
 {
+  assert(n <= remaining_before);
+
   for (size_t i = 0; i < n; ++i) {
     unsigned scale = envelope_scale;
 
     if (phase_attack_enabled) {
-     const size_t position = audible_phase_elapsed + i;
-     if (position < fade_samples)
-       scale = std::min(scale, (unsigned)((position + 1) * envelope_scale
-                                          / fade_samples));
+      const size_t position = audible_phase_elapsed + i;
+      if (position < fade_samples)
+        scale = std::min(scale,
+                         (unsigned)((uint64_t)(position + 1) * envelope_scale
+                                   / fade_samples));
     }
 
     const size_t remaining = remaining_before - i;
     if (remaining <= fade_samples)
-     scale = std::min(scale, (unsigned)(remaining * envelope_scale
-                                        / fade_samples));
+      scale = std::min(scale,
+                       (unsigned)((uint64_t)remaining * envelope_scale
+                                 / fade_samples));
 
     buffer[i] = (int16_t)((int32_t)buffer[i] * (int32_t)scale
                          / (int32_t)envelope_scale);
@@ -107,8 +112,6 @@ VarioSynthesiser::SetVario(double vario)
     UnsafeSetSilence();
     return;
   }
-
-  dead_band_active = false;
 
   /* update the ToneSynthesiser base class */
   SetTone(VarioToFrequency(ivario));

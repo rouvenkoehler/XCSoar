@@ -289,6 +289,7 @@ constexpr std::string_view VarioMaxPeriod = "VarioMaxPeriod";
 constexpr std::string_view VarioDeadBandEnabled = "VarioDeadBandEnabled";
 constexpr std::string_view VarioDeadBandMin = "VarioDeadBandMin";
 constexpr std::string_view VarioDeadBandMax = "VarioDeadBandMax";
+constexpr std::string_view VarioKalmanVariance = "VarioKalmanVariance";
 
 constexpr std::string_view PagesDistinctZoom = "PagesDistinctZoom";
 

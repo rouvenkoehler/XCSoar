@@ -21,6 +21,7 @@ static bool have_sles;
 
 static PCMPlayer *player;
 static VarioSynthesiser *synthesiser;
+static double kalman_variance_override = 0.0;
 
 bool
 AudioVarioGlue::HaveAudioVario()
@@ -78,6 +79,8 @@ AudioVarioGlue::Configure(const VarioSoundSettings &settings)
     player->Start(*synthesiser);
   } else
     player->Stop();
+
+  kalman_variance_override = settings.kalman_filter_variance;
 }
 
 void
@@ -106,4 +109,10 @@ AudioVarioGlue::NoValue()
   assert(synthesiser != nullptr);
 
   synthesiser->SetSilence();
+}
+
+double
+AudioVarioGlue::GetKalmanVarianceOverride() noexcept
+{
+  return kalman_variance_override;
 }

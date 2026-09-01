@@ -46,6 +46,13 @@ namespace AudioVarioGlue {
    */
   bool HaveAudioVario();
 
+  /**
+   * Returns the user-configured Kalman filter variance override for the
+   * barometric pressure sensor (in hPa²), or 0.0 if no override is set
+   * (i.e. the sensor-specific default should be used).
+   */
+  double GetKalmanVarianceOverride() noexcept;
+
 #else
   static inline void Initialise() {}
   static inline void Deinitialise() {}
@@ -53,5 +60,6 @@ namespace AudioVarioGlue {
   static inline void SetValue([[maybe_unused]] double vario) {}
   static inline void NoValue() {}
   static inline bool HaveAudioVario() { return false; }
+  static inline double GetKalmanVarianceOverride() noexcept { return 0.0; }
 #endif
 };
